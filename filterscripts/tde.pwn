@@ -9,7 +9,7 @@
 	 | |  \|_  _|.|_ _  _
 	 | |__/|__(_|||_(_)|
 
-	Version 1.17   
+	Version 1.18   
 	TDEditor Credits:
 
 	    - adri1                                                                                         USER PROFILE: http://forum.sa-mp.com/member.php?u=106967
@@ -31,6 +31,9 @@
 		forward OnAnyKeyDown(key);
 */
 
+#define PROJECT_PATH "tde/projects/"
+#define EXPORT_PATH "tde/exports/"
+#define TDE_VERSION "1.18"
 
 #define VK_KEY_A	0x41
 #define VK_KEY_B	0x42
@@ -284,7 +287,8 @@ new
 	LetterSizeTimer = -1, LetterTimer, EditSizeTDTimer = -1, EditSizeSpeedT,
 	ColorMode, Colors[4], BackManageDialog[15], PageStart, Float:Zoom = 1.0,
 	ProjectFile[64], Pro_Str[5000], File:Handler, str_list[3000], EditorUpdateTimer,
-    line[800], bool:MouseCursor, bool:PixelLock, SpeedSTR[256], bool:SelectedTextDraws[MAX_PROJECT_TEXTDRAWS], bool:moveselectedtds, bool:selectall
+    line[800], bool:MouseCursor, bool:PixelLock, SpeedSTR[256], bool:SelectedTextDraws[MAX_PROJECT_TEXTDRAWS], bool:moveselectedtds, bool:selectall,
+    opu_check_afk
 ;
 
 public OnFilterScriptInit()
@@ -297,7 +301,7 @@ public OnFilterScriptInit()
 	print(" | |  \\|_  _|.|_ _  _		");
 	print(" | |__/|__(_|||_(_)|			");
     print(" ");
-    print("TDEditor V1.17 by adri1");
+    print("TDEditor V"TDE_VERSION" by adri1");
     print("TDEditor loaded");
     print(" ");
 
@@ -413,7 +417,7 @@ public OnFilterScriptExit()
 	print(" | |  \\|_  _|.|_ _  _		");
 	print(" | |__/|__(_|||_(_)|			");
     print(" ");
-    print("TDEditor V1.17 by adri1");
+    print("TDEditor V"TDE_VERSION" by adri1");
     print("TDEditor unloaded");
     print(" ");
 
@@ -700,7 +704,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	        TogglePlayerControllable(playerid, false);
 	        DestroyMenuTextDraws();
   			CreateMenuTextDraws();
-	        SendClientMessage(playerid, -1, "{e2b960}TDEditor 1.17 {FFFFFF}Click on the image to start...");
+	        SendClientMessage(playerid, -1, "{e2b960}TDEditor "TDE_VERSION" {FFFFFF}Click on the image to start...");
 	        TDE_TextDrawShowForPlayer(playerid, TDELOGO);
 	        SelectTextDraw(playerid, -1);
             EmptyString(ProjectFile);
@@ -737,7 +741,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						return 1;
 					}
           			new Found;
-				    Handler = fopen("tdelist.txt", io_read);
+				    Handler = fopen(""PROJECT_PATH"tdelist.txt", io_read);
 				    if(Handler)
 				    {
 					    while(fread(Handler, Pro_Str))
@@ -808,7 +812,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if(!IsValidProjectName(inputtext)) return ShowPlayerDialog(playerid, DIALOG_NEWPROJECT, DIALOG_STYLE_INPUT, "TDEditor - New project", "Project Name (if exists will load):", ">>", "<<");
 			if(strlen(ProjectFile)) CloseProject();
 
-			format(ProjectFile, sizeof ProjectFile, "%s.tde", inputtext);
+			format(ProjectFile, sizeof ProjectFile, "%s", inputtext);
 			if(!CheckProject(inputtext)) AddProject(ProjectFile);
 
 			ProjectEditor = playerid;
@@ -817,14 +821,16 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	        ShowEditor();
 
 	        PageStart = 0;
-			if(fexist(ProjectFile))
+
+	        new filePath[128]; format(filePath, sizeof filePath, ""PROJECT_PATH"%s.tde", ProjectFile);
+			if(fexist(filePath))
 			{
 				LoadProject();
 				SendClientMessage(ProjectEditor, -1, "{e2b960}TDEditor: {FFFFFF}Project loaded.");
 			}
 			else
 			{
-			    Handler = fopen(ProjectFile, io_write);
+			    Handler = fopen(filePath, io_write);
 			    fclose(Handler);
 			    SendClientMessage(ProjectEditor, -1, "{e2b960}TDEditor: {FFFFFF}Project created.");
 			}
@@ -859,7 +865,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	{
 	    if(response)
         {
-            Handler = fopen("tdelist.txt", io_read);
+            Handler = fopen(""PROJECT_PATH"tdelist.txt", io_read);
          	if(!Handler) return 1;
 
          	new Index = -1;
@@ -1299,7 +1305,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	        {
 	            if(!strlen(inputtext)) return ShowPlayerDialog(ProjectEditor, DIALOG_MODELID, DIALOG_STYLE_INPUT, "TDEditor - ModelID", "Insert the ModelID:", ">>", "X");
 	            if(sscanf(inputtext, "d", inputtext[0])) return ShowPlayerDialog(ProjectEditor, DIALOG_MODELID, DIALOG_STYLE_INPUT, "TDEditor - ModelID", "Insert the ModelID:", ">>", "X");
-	            if(inputtext[0] < 0) return ShowPlayerDialog(ProjectEditor, DIALOG_MODELID, DIALOG_STYLE_INPUT, "TDEditor - ModelID", "Insert the ModelID:", ">>", "X");
+	            //if(inputtext[0] < 0) return ShowPlayerDialog(ProjectEditor, DIALOG_MODELID, DIALOG_STYLE_INPUT, "TDEditor - ModelID", "Insert the ModelID:", ">>", "X");
 				ProjectTD[EditIndex][ETextDrawModelid] = inputtext[0];
 				TDE_TextDrawSetPreviewModel(ProjectTD[EditIndex][ETextDrawID], ProjectTD[EditIndex][ETextDrawModelid]);
 				if(IsVehicle(ProjectTD[EditIndex][ETextDrawModelid])) TDE_TextDrawSetPreviewVehCol(ProjectTD[EditIndex][ETextDrawID], ProjectTD[EditIndex][ETextDrawVehCol1], ProjectTD[EditIndex][ETextDrawVehCol2]);
@@ -2411,7 +2417,8 @@ public OnAnyKeyDown(key)
 
 TDE_CALLBACK:OnEditorUpdate(playerid)
 {
-    //if(IsPlayerPaused(playerid)) return 0;
+	if(GetTickCount() > opu_check_afk + 600) return 1;
+
     for(new c = 0; c < sizeof(VirtualKeys); c++)
 	{
 		if(GetVirtualKeyState(VirtualKeys[c][KEY_CODE]) & 0x8000)
@@ -4270,7 +4277,7 @@ stock KeyToString(key)
 				case VK_KEY_X: LETTER = "x";//58
 				case VK_KEY_Y: LETTER = "y";//59
 				case VK_KEY_Z: LETTER = "z";//5A
-				case VK_SPACE: LETTER = "_";
+				case VK_SPACE: LETTER = " ";
 				case VK_ENTER: LETTER = "~n~";
 				case VK_KEYB0: LETTER = "=";//30
 				case VK_KEYB1: LETTER = "!";//!
@@ -4339,7 +4346,7 @@ stock KeyToString(key)
 				case VK_KEY_X: LETTER = "X";//58
 				case VK_KEY_Y: LETTER = "Y";//59
 				case VK_KEY_Z: LETTER = "Z";//5A
-				case VK_SPACE: LETTER = "_";
+				case VK_SPACE: LETTER = " ";
 				case VK_ENTER: LETTER = "~n~";
 				case VK_KEYB0: LETTER = "0";//30
 				case VK_KEYB1: LETTER = "1";//31
@@ -4413,7 +4420,7 @@ stock KeyToString(key)
 				case VK_KEY_X: LETTER = "X";//58
 				case VK_KEY_Y: LETTER = "Y";//59
 				case VK_KEY_Z: LETTER = "Z";//5A
-				case VK_SPACE: LETTER = "_";
+				case VK_SPACE: LETTER = " ";
 				case VK_ENTER: LETTER = "~n~";
 				case VK_KEYB0: LETTER = "=";//30
 				case VK_KEYB1: LETTER = "!";//!
@@ -4482,7 +4489,7 @@ stock KeyToString(key)
 				case VK_KEY_X: LETTER = "x";//58
 				case VK_KEY_Y: LETTER = "y";//59
 				case VK_KEY_Z: LETTER = "z";//5A
-				case VK_SPACE: LETTER = "_";
+				case VK_SPACE: LETTER = " ";
 				case VK_ENTER: LETTER = "~n~";
 				case VK_KEYB0: LETTER = "0";//30
 				case VK_KEYB1: LETTER = "1";//31
@@ -5280,8 +5287,10 @@ stock IsVehicle(modelid)
 stock SaveProject()
 {
 	if(!strlen(ProjectFile)) return SendClientMessage(ProjectEditor, -1, "{e2b960}TDEditor: {FFFFFF}Load the project first.");
-    if(fexist(ProjectFile)) fremove(ProjectFile);
-	Handler = fopen(ProjectFile, io_append);
+
+	new filePath[128]; format(filePath, sizeof filePath, ""PROJECT_PATH"%s.tde", ProjectFile);
+    if(fexist(filePath)) fremove(filePath);
+	Handler = fopen(filePath, io_append);
     if(!Handler) return SendClientMessage(ProjectEditor, -1, "{e2b960}TDEditor: {FFFFFF}Couldn't save the project.");
 
 	new alignment, usebox, font, proportional;
@@ -5318,7 +5327,9 @@ stock SaveProject()
 stock LoadProject()
 {
     if(!strlen(ProjectFile)) return SendClientMessage(ProjectEditor, -1, "{e2b960}TDEditor: {FFFFFF}Couldnt load the project.");
-    Handler = fopen(ProjectFile, io_read);
+
+    new filePath[128]; format(filePath, sizeof filePath, ""PROJECT_PATH"%s.tde", ProjectFile);
+    Handler = fopen(filePath, io_read);
 	if(!Handler) return false;
     new i, alignment, usebox, font, proportional;
     while(fread(Handler, Pro_Str))
@@ -5384,9 +5395,9 @@ stock StripNewLine(string[]) //DracoBlue (bugfix idea by Y_Less)
 
 stock CheckProject(name[])
 {
-    if(!fexist("tdelist.txt")) return false;
+    if(!fexist(""PROJECT_PATH"tdelist.txt")) return false;
 
-    Handler = fopen("tdelist.txt", io_read);
+    Handler = fopen(""PROJECT_PATH"tdelist.txt", io_read);
     if(!Handler) return -1;
 
 	while(fread(Handler, Pro_Str))
@@ -5403,7 +5414,7 @@ stock CheckProject(name[])
 
 stock AddProject(name[])
 {
-    Handler = fopen("tdelist.txt", io_append);
+    Handler = fopen(""PROJECT_PATH"tdelist.txt", io_append);
     if(!Handler) return false;
 
     fwrite(Handler, name);
@@ -5444,17 +5455,15 @@ stock IsValidProjectName(name[])
 	return true;
 }
 
+new last_export;
 stock ExportProject()
 {
 	if(!strlen(ProjectFile)) return false;
 
-    new ExportFile[64];
-    format(ExportFile, sizeof(ExportFile), "%s", ProjectFile);
-    strins(ExportFile, "TDE_", 0);
-    new len = strlen(ExportFile);
-	strdel(ExportFile, len - 3, len);
-	strcat(ExportFile, "txt");
-
+	if(gettime() - last_export < 2) return 1;
+	last_export = gettime();
+    new ExportFile[128];
+    format(ExportFile, sizeof(ExportFile), ""EXPORT_PATH"%s.txt", ProjectFile);
     if(fexist(ExportFile)) fremove(ExportFile);
 
 	new File:ExportIO = fopen(ExportFile, io_append);
@@ -5480,6 +5489,7 @@ stock ExportProject()
 	{
 	    fwrite(ExportIO, "//Global TextDraws: \r\n\r\n\r\n");
 	    format(line, sizeof(line), "new Text:TDEditor_TD[%i];\r\n", Index); fwrite(ExportIO, line);
+
 	    Index = 0;
 	    new alignment, font, proportion;
 	    fwrite(ExportIO, "\r\n");
@@ -5495,8 +5505,12 @@ stock ExportProject()
 				        font = TDE_TextDrawGetFont(ProjectTD[i][ETextDrawID]);
 				        proportion = TDE_TextDrawIsProportional(ProjectTD[i][ETextDrawID]);
 				        format(line, sizeof(line), "TDEditor_TD[%i] = TextDrawCreate(%f, %f, \"%s\");\r\n", Index, ProjectTD[i][ETextDrawPosX], ProjectTD[i][ETextDrawPosY], ProjectTD[i][ETextDrawText]); fwrite(ExportIO, line);
-                        format(line, sizeof(line), "TextDrawLetterSize(TDEditor_TD[%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawLetterX], ProjectTD[i][ETextDrawLetterY]); fwrite(ExportIO, line);
-	                    if(TDE_TextDrawIsBox(ProjectTD[i][ETextDrawID]) || font == 4 || font == 5)
+                        if(ProjectTD[i][ETextDrawLetterX] != 0.0 || ProjectTD[i][ETextDrawLetterY] != 0.0)
+                        {
+                        	format(line, sizeof(line), "TextDrawLetterSize(TDEditor_TD[%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawLetterX], ProjectTD[i][ETextDrawLetterY]);
+                        	fwrite(ExportIO, line);
+                        }
+	                    if(ProjectTD[i][ETextDrawTextX] != 0.0 || ProjectTD[i][ETextDrawTextY] != 0.0)
 	                    {
 	                    	if(alignment == 2)
 							{
@@ -5510,23 +5524,38 @@ stock ExportProject()
 							}
 						}
 						format(line, sizeof(line), "TextDrawAlignment(TDEditor_TD[%i], %d);\r\n", Index, alignment); fwrite(ExportIO, line);
-						format(line, sizeof(line), "TextDrawColor(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]); fwrite(ExportIO, line);
+						if(ProjectTD[i][ETextDrawColor] != 0)
+						{
+							format(line, sizeof(line), "TextDrawColor(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]); 
+							fwrite(ExportIO, line);
+						}
 						if(TDE_TextDrawIsBox(ProjectTD[i][ETextDrawID]))
 	                    {
 							format(line, sizeof(line), "TextDrawUseBox(TDEditor_TD[%i], 1);\r\n", Index); fwrite(ExportIO, line);
                             format(line, sizeof(line), "TextDrawBoxColor(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]); fwrite(ExportIO, line);
 						}
-						format(line, sizeof(line), "TextDrawSetShadow(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]); fwrite(ExportIO, line);
-						format(line, sizeof(line), "TextDrawSetOutline(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]); fwrite(ExportIO, line);
-						format(line, sizeof(line), "TextDrawBackgroundColor(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]); fwrite(ExportIO, line);
+						if(ProjectTD[i][ETextDrawShadow] != 0) 
+						{
+							format(line, sizeof(line), "TextDrawSetShadow(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
+							fwrite(ExportIO, line);
+						}
+						if(ProjectTD[i][ETextDrawOutline] != 0)
+						{
+							format(line, sizeof(line), "TextDrawSetOutline(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]);
+							fwrite(ExportIO, line);
+						}
+						if(ProjectTD[i][ETextDrawBGColor] != 0)
+						{
+							format(line, sizeof(line), "TextDrawBackgroundColor(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]);
+							fwrite(ExportIO, line);
+						}
 						format(line, sizeof(line), "TextDrawFont(TDEditor_TD[%i], %d);\r\n", Index, font); fwrite(ExportIO, line);
 						format(line, sizeof(line), "TextDrawSetProportional(TDEditor_TD[%i], %d);\r\n", Index, proportion); fwrite(ExportIO, line);
-						format(line, sizeof(line), "TextDrawSetShadow(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]); fwrite(ExportIO, line);
-
                         if(ProjectTD[i][ETextDrawSelectable])
-						{
-						    format(line, sizeof(line), "TextDrawSetSelectable(TDEditor_TD[%i], true);\r\n", Index); fwrite(ExportIO, line);
-						}
+                        {
+                        	format(line, sizeof(line), "TextDrawSetSelectable(TDEditor_TD[%i], true);\r\n", Index);
+                        	fwrite(ExportIO, line);
+                        }
 
 						if(font == 5)
 						{
@@ -5582,8 +5611,12 @@ stock ExportProject()
 				        font = TDE_TextDrawGetFont(ProjectTD[i][ETextDrawID]);
 				        proportion = TDE_TextDrawIsProportional(ProjectTD[i][ETextDrawID]);
 				        format(line, sizeof(line), "TDEditor_PTD[playerid][%i] = CreatePlayerTextDraw(playerid, %f, %f, \"%s\");\r\n", Index, ProjectTD[i][ETextDrawPosX], ProjectTD[i][ETextDrawPosY], ProjectTD[i][ETextDrawText]); fwrite(ExportIO, line);
-	                    format(line, sizeof(line), "PlayerTextDrawLetterSize(playerid, TDEditor_PTD[playerid][%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawLetterX], ProjectTD[i][ETextDrawLetterY]); fwrite(ExportIO, line);
-	                    if(TDE_TextDrawIsBox(ProjectTD[i][ETextDrawID]) || font == 4 || font == 5)
+	                    if(ProjectTD[i][ETextDrawLetterX] != 0.0 || ProjectTD[i][ETextDrawLetterY] != 0.0)
+	                    {
+	                    	format(line, sizeof(line), "PlayerTextDrawLetterSize(playerid, TDEditor_PTD[playerid][%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawLetterX], ProjectTD[i][ETextDrawLetterY]);
+	                    	fwrite(ExportIO, line);
+	                    }
+	                    if(ProjectTD[i][ETextDrawTextX] != 0.0 || ProjectTD[i][ETextDrawTextY] != 0.0)
 	                    {
 	                    	if(alignment == 2)
 							{
@@ -5597,23 +5630,38 @@ stock ExportProject()
 							}
 						}
 						format(line, sizeof(line), "PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, alignment); fwrite(ExportIO, line);
-						format(line, sizeof(line), "PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]); fwrite(ExportIO, line);
+						if(ProjectTD[i][ETextDrawColor] != 0)
+						{
+							format(line, sizeof(line), "PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]);
+							fwrite(ExportIO, line);
+						}
 						if(TDE_TextDrawIsBox(ProjectTD[i][ETextDrawID]))
 	                    {
 							format(line, sizeof(line), "PlayerTextDrawUseBox(playerid, TDEditor_PTD[playerid][%i], 1);\r\n", Index); fwrite(ExportIO, line);
 	                        format(line, sizeof(line), "PlayerTextDrawBoxColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]); fwrite(ExportIO, line);
 						}
-						format(line, sizeof(line), "PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]); fwrite(ExportIO, line);
-						format(line, sizeof(line), "PlayerTextDrawSetOutline(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]); fwrite(ExportIO, line);
-						format(line, sizeof(line), "PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]); fwrite(ExportIO, line);
+						if(ProjectTD[i][ETextDrawShadow] != 0)
+						{
+							format(line, sizeof(line), "PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
+							fwrite(ExportIO, line);
+						}
+						if(ProjectTD[i][ETextDrawOutline] != 0)
+						{
+							format(line, sizeof(line), "PlayerTextDrawSetOutline(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]); 
+							fwrite(ExportIO, line);
+						}
+						if(ProjectTD[i][ETextDrawBGColor] != 0)
+						{
+							format(line, sizeof(line), "PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]);
+							fwrite(ExportIO, line);
+						}
 						format(line, sizeof(line), "PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, font); fwrite(ExportIO, line);
 						format(line, sizeof(line), "PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, proportion); fwrite(ExportIO, line);
-						format(line, sizeof(line), "PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]); fwrite(ExportIO, line);
-
 	                    if(ProjectTD[i][ETextDrawSelectable])
-						{
-						    format(line, sizeof(line), "PlayerTextDrawSetSelectable(playerid, TDEditor_PTD[playerid][%i], true);\r\n", Index); fwrite(ExportIO, line);
-						}
+	                    {
+	                    	format(line, sizeof(line), "PlayerTextDrawSetSelectable(playerid, TDEditor_PTD[playerid][%i], true);\r\n", Index);
+	                    	fwrite(ExportIO, line);
+	                    }
 
 						if(font == 5)
 						{
@@ -5638,7 +5686,7 @@ stock ExportProject()
 	getdate(Year, Month, Day);
 
 	format(line, sizeof(line), "\r\n\r\n\r\n//Total textdraws exported: %d (%d global textdraws / %d player textdraws) ~ %d/%d/%d ~ %d:%d:%d", (global+player), global, player, Day, Month, Year, Hour, Minute, Second); fwrite(ExportIO, line);
-	format(line, sizeof(line), "\r\nTDEditor V1.17 BY ADRI1"); fwrite(ExportIO, line);
+	format(line, sizeof(line), "\r\nTDEditor V"TDE_VERSION" BY ADRI1"); fwrite(ExportIO, line);
 	fclose(ExportIO);
 
 	new str[128];
@@ -5692,6 +5740,11 @@ public HideInfoDraw()
 	return 1;
 }
 
+public OnPlayerUpdate(playerid)
+{
+	if(ProjectEditor == playerid) opu_check_afk = GetTickCount();
+	return 1;
+}
 
 /*
 
@@ -5699,6 +5752,6 @@ public HideInfoDraw()
 	 | |  \|_  _|.|_ _  _
 	 | |__/|__(_|||_(_)|
 
-	TDEditor 1.17 by adri1
+	TDEditor 1.18 by adri1
 
 */
