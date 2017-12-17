@@ -4277,7 +4277,7 @@ stock KeyToString(key)
 				case VK_KEY_X: LETTER = "x";//58
 				case VK_KEY_Y: LETTER = "y";//59
 				case VK_KEY_Z: LETTER = "z";//5A
-				case VK_SPACE: LETTER = " ";
+				case VK_SPACE: LETTER = "_";
 				case VK_ENTER: LETTER = "~n~";
 				case VK_KEYB0: LETTER = "=";//30
 				case VK_KEYB1: LETTER = "!";//!
@@ -4346,7 +4346,7 @@ stock KeyToString(key)
 				case VK_KEY_X: LETTER = "X";//58
 				case VK_KEY_Y: LETTER = "Y";//59
 				case VK_KEY_Z: LETTER = "Z";//5A
-				case VK_SPACE: LETTER = " ";
+				case VK_SPACE: LETTER = "_";
 				case VK_ENTER: LETTER = "~n~";
 				case VK_KEYB0: LETTER = "0";//30
 				case VK_KEYB1: LETTER = "1";//31
@@ -4420,7 +4420,7 @@ stock KeyToString(key)
 				case VK_KEY_X: LETTER = "X";//58
 				case VK_KEY_Y: LETTER = "Y";//59
 				case VK_KEY_Z: LETTER = "Z";//5A
-				case VK_SPACE: LETTER = " ";
+				case VK_SPACE: LETTER = "_";
 				case VK_ENTER: LETTER = "~n~";
 				case VK_KEYB0: LETTER = "=";//30
 				case VK_KEYB1: LETTER = "!";//!
@@ -4489,7 +4489,7 @@ stock KeyToString(key)
 				case VK_KEY_X: LETTER = "x";//58
 				case VK_KEY_Y: LETTER = "y";//59
 				case VK_KEY_Z: LETTER = "z";//5A
-				case VK_SPACE: LETTER = " ";
+				case VK_SPACE: LETTER = "_";
 				case VK_ENTER: LETTER = "~n~";
 				case VK_KEYB0: LETTER = "0";//30
 				case VK_KEYB1: LETTER = "1";//31
@@ -5534,11 +5534,8 @@ stock ExportProject()
 							format(line, sizeof(line), "TextDrawUseBox(TDEditor_TD[%i], 1);\r\n", Index); fwrite(ExportIO, line);
                             format(line, sizeof(line), "TextDrawBoxColor(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]); fwrite(ExportIO, line);
 						}
-						if(ProjectTD[i][ETextDrawShadow] != 0) 
-						{
-							format(line, sizeof(line), "TextDrawSetShadow(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
-							fwrite(ExportIO, line);
-						}
+						format(line, sizeof(line), "TextDrawSetShadow(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
+						fwrite(ExportIO, line);
 						if(ProjectTD[i][ETextDrawOutline] != 0)
 						{
 							format(line, sizeof(line), "TextDrawSetOutline(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]);
@@ -5640,11 +5637,8 @@ stock ExportProject()
 							format(line, sizeof(line), "PlayerTextDrawUseBox(playerid, TDEditor_PTD[playerid][%i], 1);\r\n", Index); fwrite(ExportIO, line);
 	                        format(line, sizeof(line), "PlayerTextDrawBoxColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]); fwrite(ExportIO, line);
 						}
-						if(ProjectTD[i][ETextDrawShadow] != 0)
-						{
-							format(line, sizeof(line), "PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
-							fwrite(ExportIO, line);
-						}
+						format(line, sizeof(line), "PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
+						fwrite(ExportIO, line);
 						if(ProjectTD[i][ETextDrawOutline] != 0)
 						{
 							format(line, sizeof(line), "PlayerTextDrawSetOutline(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]); 
