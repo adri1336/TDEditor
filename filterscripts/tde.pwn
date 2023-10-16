@@ -180,6 +180,7 @@ enum
 	DIALOG_MODELS_ZO,
 	DIALOG_MODELS_C1,
 	DIALOG_MODELS_C2,
+	DIALOG_EXPORT_PROJECT,
 	DIALOG_MANAGE = 7777,
 	DIALOG_SELECTTDS = 8888
 };
@@ -1841,6 +1842,25 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			}
 			else ShowPlayerDialog(ProjectEditor, DIALOG_EDITCOLOR+104, DIALOG_STYLE_INPUT, "TDEditor - BG/Box/Color", "0 to 255, enter the amount of Blue", ">>", "<<");
 		}
+		case DIALOG_EXPORT_PROJECT:
+		{
+			if(response)
+			{
+				switch(listitem)
+				{
+					case 0:
+					{
+						// Export for SA-MP
+						ExportProject();
+					}
+					case 1:
+					{
+						// Export for open.mp
+						ExportProject(.open_mp = true);
+					}
+				}
+			}
+		}
 	}
 	return false;
 }
@@ -2057,7 +2077,8 @@ public OnPlayerClickTextDraw(playerid, Text:clickedid)
 	}
 	if(clickedid == TDE_Menu[4])
 	{
-	    ExportProject();
+	    ShowPlayerDialog(ProjectEditor, DIALOG_EXPORT_PROJECT, DIALOG_STYLE_LIST, "TDEditor - Export", "Export for SA-MP\nExport for open.mp", "Select", "X");
+	    // ExportProject();
 	    return 1;
 	}
 	if(clickedid == TDE_Menu[8])
@@ -2096,7 +2117,7 @@ public OnPlayerClickTextDraw(playerid, Text:clickedid)
 	{
  		/*if((GetTickCount() - DoubleClickCount) <= 180)
  		{
- 		    ShowPlayerDialog(ProjectEditor, DIALOG_EDITTEXT, DIALOG_STYLE_INPUT, "TDEditor - Español", "Introduzca el texto aquí:", ">>", "X");
+ 		    ShowPlayerDialog(ProjectEditor, DIALOG_EDITTEXT, DIALOG_STYLE_INPUT, "TDEditor - EspaÃ±ol", "Introduzca el texto aquÃ­:", ">>", "X");
  		    TDE_TextDrawSetString(TD_Status, "EDITMODE_NONE");
  		    EditMode = EDITMODE_NONE;
  		    IsPSel = false;
@@ -4211,7 +4232,7 @@ stock DestroyMenuTextDraws()
 	return 1;
 }
 
-stock TextdrawSettings(Text:textid, Float:Sizes[4], Options[10]) //By iPleomax
+stock TextdrawSettings(Text:textid, const Float:Sizes[4], const Options[10]) //By iPleomax
 {
 	TDE_TextDrawLetterSize		(textid, Sizes[0], Sizes[1]);
 	TDE_TextDrawTextSize    	(textid, Sizes[2], Sizes[3]);
@@ -4282,7 +4303,7 @@ stock KeyToString(key)
 				case VK_KEYB0: LETTER = "=";//30
 				case VK_KEYB1: LETTER = "!";//!
 				case VK_KEYB2: LETTER = "\"";//32
-				//case VK_KEYB3: LETTER = "·";//33
+				//case VK_KEYB3: LETTER = "Â·";//33
 				case VK_KEYB4: LETTER = "$";//34
 				case VK_KEYB5: LETTER = "%";//35
 				case VK_KEYB6: LETTER = "&";//36
@@ -4295,7 +4316,7 @@ stock KeyToString(key)
 				case VK_OEM_PERIOD: LETTER = ":";
 				case VK_OEM_2: LETTER = "?";
 				case VK_OEM_4: LETTER = "?";
-				//case VK_OEM_5: LETTER = "ª";
+				//case VK_OEM_5: LETTER = "Âª";
 				case VK_OEM_6: LETTER = "[";
 				case VK_OEM_102: LETTER = ">";
 				case VK_NUMPAD0: LETTER = "0";
@@ -4365,7 +4386,7 @@ stock KeyToString(key)
 				case VK_OEM_2: LETTER = "]";
 				case VK_OEM_4: LETTER = "'";
 				case VK_OEM_5: LETTER = "|";
-				case VK_OEM_6: LETTER = "¡";
+				case VK_OEM_6: LETTER = "Â¡";
 				case VK_OEM_102: LETTER = "<";
 				case VK_NUMPAD0: LETTER = "0";
 				case VK_NUMPAD1: LETTER = "1";
@@ -4425,7 +4446,7 @@ stock KeyToString(key)
 				case VK_KEYB0: LETTER = "=";//30
 				case VK_KEYB1: LETTER = "!";//!
 				case VK_KEYB2: LETTER = "\"";//32
-				//case VK_KEYB3: LETTER = "·";//33
+				//case VK_KEYB3: LETTER = "Â·";//33
 				case VK_KEYB4: LETTER = "$";//34
 				case VK_KEYB5: LETTER = "%";//35
 				case VK_KEYB6: LETTER = "&";//36
@@ -4438,7 +4459,7 @@ stock KeyToString(key)
 				case VK_OEM_PERIOD: LETTER = ":";
 				case VK_OEM_2: LETTER = "?";
 				case VK_OEM_4: LETTER = "?";
-				//case VK_OEM_5: LETTER = "ª";
+				//case VK_OEM_5: LETTER = "Âª";
 				case VK_OEM_6: LETTER = "[";
 				case VK_OEM_102: LETTER = ">";
 				case VK_NUMPAD0: LETTER = "0";
@@ -4508,7 +4529,7 @@ stock KeyToString(key)
 				case VK_OEM_2: LETTER = "]";
 				case VK_OEM_4: LETTER = "'";
 				case VK_OEM_5: LETTER = "|";
-				case VK_OEM_6: LETTER = "¡";
+				case VK_OEM_6: LETTER = "Â¡";
 				case VK_OEM_102: LETTER = "<";
 				case VK_NUMPAD0: LETTER = "0";
 				case VK_NUMPAD1: LETTER = "1";
@@ -4672,7 +4693,7 @@ stock GetAvailableIndexBack(start)
 	return INVALID_INDEX_ID;
 }
 
-stock HexToInt(string[])//DracoBlue
+stock HexToInt(const string[])//DracoBlue
 {
    if (string[0] == 0) return 0;
    new i, cur=1, res = 0;
@@ -5393,7 +5414,7 @@ stock StripNewLine(string[]) //DracoBlue (bugfix idea by Y_Less)
 	}
 }
 
-stock CheckProject(name[])
+stock CheckProject(const name[])
 {
     if(!fexist(""PROJECT_PATH"tdelist.txt")) return false;
 
@@ -5412,7 +5433,7 @@ stock CheckProject(name[])
 	return false;
 }
 
-stock AddProject(name[])
+stock AddProject(const name[])
 {
     Handler = fopen(""PROJECT_PATH"tdelist.txt", io_append);
     if(!Handler) return false;
@@ -5442,7 +5463,7 @@ stock CloseProject()
     return true;
 }
 
-stock IsValidProjectName(name[])
+stock IsValidProjectName(const name[])
 {
 	Loop(0, strlen(name))
 	{
@@ -5456,7 +5477,7 @@ stock IsValidProjectName(name[])
 }
 
 new last_export;
-stock ExportProject()
+stock ExportProject(bool:open_mp = false)
 {
 	if(!strlen(ProjectFile)) return false;
 
@@ -5522,17 +5543,35 @@ stock ExportProject()
 								format(line, sizeof(line), "TextDrawTextSize(TDEditor_TD[%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawTextX], ProjectTD[i][ETextDrawTextY]);
 								fwrite(ExportIO, line);
 							}
-						}
-						format(line, sizeof(line), "TextDrawAlignment(TDEditor_TD[%i], %d);\r\n", Index, alignment); fwrite(ExportIO, line);
-						if(ProjectTD[i][ETextDrawColor] != 0)
+						} 
+						if(open_mp)
 						{
+							format(line, sizeof(line), "TextDrawAlignment(TDEditor_TD[%i], TEXT_DRAW_ALIGN:%d);\r\n", Index, alignment);
+							fwrite(ExportIO, line);
+
+							format(line, sizeof(line), "TextDrawColour(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]); 
+							fwrite(ExportIO, line);
+						}
+						else
+						{
+							format(line, sizeof(line), "TextDrawAlignment(TDEditor_TD[%i], %d);\r\n", Index, alignment);
+							fwrite(ExportIO, line);
+
 							format(line, sizeof(line), "TextDrawColor(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]); 
 							fwrite(ExportIO, line);
 						}
 						if(TDE_TextDrawIsBox(ProjectTD[i][ETextDrawID]))
 	                    {
-							format(line, sizeof(line), "TextDrawUseBox(TDEditor_TD[%i], 1);\r\n", Index); fwrite(ExportIO, line);
-                            format(line, sizeof(line), "TextDrawBoxColor(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]); fwrite(ExportIO, line);
+							format(line, sizeof(line), "TextDrawUseBox(TDEditor_TD[%i], true);\r\n", Index); fwrite(ExportIO, line);
+							if(open_mp)
+							{
+                            	format(line, sizeof(line), "TextDrawBoxColour(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]);
+							}
+							else
+							{
+                            	format(line, sizeof(line), "TextDrawBoxColor(TDEditor_TD[%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]);
+							}
+                            fwrite(ExportIO, line);
 						}
 						format(line, sizeof(line), "TextDrawSetShadow(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
 						fwrite(ExportIO, line);
@@ -5541,13 +5580,23 @@ stock ExportProject()
 							format(line, sizeof(line), "TextDrawSetOutline(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]);
 							fwrite(ExportIO, line);
 						}
-						if(ProjectTD[i][ETextDrawBGColor] != 0)
+						if(open_mp)
+						{
+							format(line, sizeof(line), "TextDrawBackgroundColour(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]);
+							fwrite(ExportIO, line);
+							
+							format(line, sizeof(line), "TextDrawFont(TDEditor_TD[%i], TEXT_DRAW_FONT:%d);\r\n", Index, font);
+							fwrite(ExportIO, line);
+						}
+						else
 						{
 							format(line, sizeof(line), "TextDrawBackgroundColor(TDEditor_TD[%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]);
 							fwrite(ExportIO, line);
+
+							format(line, sizeof(line), "TextDrawFont(TDEditor_TD[%i], %d);\r\n", Index, font);
+							fwrite(ExportIO, line);
 						}
-						format(line, sizeof(line), "TextDrawFont(TDEditor_TD[%i], %d);\r\n", Index, font); fwrite(ExportIO, line);
-						format(line, sizeof(line), "TextDrawSetProportional(TDEditor_TD[%i], %d);\r\n", Index, proportion); fwrite(ExportIO, line);
+						format(line, sizeof(line), "TextDrawSetProportional(TDEditor_TD[%i], %s);\r\n", Index, (proportion ? "true" : "false")); fwrite(ExportIO, line);
                         if(ProjectTD[i][ETextDrawSelectable])
                         {
                         	format(line, sizeof(line), "TextDrawSetSelectable(TDEditor_TD[%i], true);\r\n", Index);
@@ -5560,7 +5609,15 @@ stock ExportProject()
 						    format(line, sizeof(line), "TextDrawSetPreviewRot(TDEditor_TD[%i], %f, %f, %f, %f);\r\n", Index, ProjectTD[i][ETextDrawRotX], ProjectTD[i][ETextDrawRotY], ProjectTD[i][ETextDrawRotZ], ProjectTD[i][ETextDrawZoom]); fwrite(ExportIO, line);
 							if(IsVehicle(ProjectTD[i][ETextDrawModelid]))
 							{
-							    format(line, sizeof(line), "TextDrawSetPreviewVehCol(TDEditor_TD[%i], %d, %d);\r\n", Index, ProjectTD[i][ETextDrawVehCol1], ProjectTD[i][ETextDrawVehCol2]); fwrite(ExportIO, line);
+								if(open_mp)
+								{
+							    	format(line, sizeof(line), "TextDrawSetPreviewVehicleColours(TDEditor_TD[%i], %d, %d);\r\n", Index, ProjectTD[i][ETextDrawVehCol1], ProjectTD[i][ETextDrawVehCol2]);
+								}
+								else
+								{
+							    	format(line, sizeof(line), "TextDrawSetPreviewVehCol(TDEditor_TD[%i], %d, %d);\r\n", Index, ProjectTD[i][ETextDrawVehCol1], ProjectTD[i][ETextDrawVehCol2]);
+								}
+							    fwrite(ExportIO, line);
 							}
 						}
 						format(line, sizeof(line), "\r\n"); fwrite(ExportIO, line);
@@ -5626,16 +5683,34 @@ stock ExportProject()
 								fwrite(ExportIO, line);
 							}
 						}
-						format(line, sizeof(line), "PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, alignment); fwrite(ExportIO, line);
-						if(ProjectTD[i][ETextDrawColor] != 0)
+						if(open_mp)
 						{
+							format(line, sizeof(line), "PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][%i], TEXT_DRAW_ALIGN:%d);\r\n", Index, alignment);
+							fwrite(ExportIO, line);
+
+							format(line, sizeof(line), "PlayerTextDrawColour(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]);
+							fwrite(ExportIO, line);
+						}
+						else
+						{
+							format(line, sizeof(line), "PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, alignment);
+							fwrite(ExportIO, line);
+
 							format(line, sizeof(line), "PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]);
 							fwrite(ExportIO, line);
 						}
 						if(TDE_TextDrawIsBox(ProjectTD[i][ETextDrawID]))
 	                    {
-							format(line, sizeof(line), "PlayerTextDrawUseBox(playerid, TDEditor_PTD[playerid][%i], 1);\r\n", Index); fwrite(ExportIO, line);
-	                        format(line, sizeof(line), "PlayerTextDrawBoxColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]); fwrite(ExportIO, line);
+							format(line, sizeof(line), "PlayerTextDrawUseBox(playerid, TDEditor_PTD[playerid][%i], true);\r\n", Index); fwrite(ExportIO, line);
+							if(open_mp)
+							{
+	                        	format(line, sizeof(line), "PlayerTextDrawBoxColour(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]);
+							}
+							else
+							{
+	                        	format(line, sizeof(line), "PlayerTextDrawBoxColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]);
+							}
+	                        fwrite(ExportIO, line);
 						}
 						format(line, sizeof(line), "PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
 						fwrite(ExportIO, line);
@@ -5644,13 +5719,23 @@ stock ExportProject()
 							format(line, sizeof(line), "PlayerTextDrawSetOutline(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]); 
 							fwrite(ExportIO, line);
 						}
-						if(ProjectTD[i][ETextDrawBGColor] != 0)
+						if(open_mp)
+						{
+							format(line, sizeof(line), "PlayerTextDrawBackgroundColour(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]);
+							fwrite(ExportIO, line);
+
+							format(line, sizeof(line), "PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][%i], TEXT_DRAW_FONT:%d);\r\n", Index, font);
+							fwrite(ExportIO, line);
+						}
+						else
 						{
 							format(line, sizeof(line), "PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]);
 							fwrite(ExportIO, line);
+
+							format(line, sizeof(line), "PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, font);
+							fwrite(ExportIO, line);
 						}
-						format(line, sizeof(line), "PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, font); fwrite(ExportIO, line);
-						format(line, sizeof(line), "PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, proportion); fwrite(ExportIO, line);
+						format(line, sizeof(line), "PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][%i], %s);\r\n", Index, (proportion ? "true" : "false")); fwrite(ExportIO, line);
 	                    if(ProjectTD[i][ETextDrawSelectable])
 	                    {
 	                    	format(line, sizeof(line), "PlayerTextDrawSetSelectable(playerid, TDEditor_PTD[playerid][%i], true);\r\n", Index);
@@ -5663,7 +5748,15 @@ stock ExportProject()
 						    format(line, sizeof(line), "PlayerTextDrawSetPreviewRot(playerid, TDEditor_PTD[playerid][%i], %f, %f, %f, %f);\r\n", Index, ProjectTD[i][ETextDrawRotX], ProjectTD[i][ETextDrawRotY], ProjectTD[i][ETextDrawRotZ], ProjectTD[i][ETextDrawZoom]); fwrite(ExportIO, line);
 							if(IsVehicle(ProjectTD[i][ETextDrawModelid]))
 							{
-							    format(line, sizeof(line), "PlayerTextDrawSetPreviewVehCol(playerid, TDEditor_PTD[playerid][%i], %d, %d);\r\n", Index, ProjectTD[i][ETextDrawVehCol1], ProjectTD[i][ETextDrawVehCol2]); fwrite(ExportIO, line);
+								if(open_mp)
+								{
+							    	format(line, sizeof(line), "PlayerTextDrawSetPreviewVehicleColours(playerid, TDEditor_PTD[playerid][%i], %d, %d);\r\n", Index, ProjectTD[i][ETextDrawVehCol1], ProjectTD[i][ETextDrawVehCol2]);
+								}
+								else
+								{
+							    	format(line, sizeof(line), "PlayerTextDrawSetPreviewVehCol(playerid, TDEditor_PTD[playerid][%i], %d, %d);\r\n", Index, ProjectTD[i][ETextDrawVehCol1], ProjectTD[i][ETextDrawVehCol2]);
+								}
+							    fwrite(ExportIO, line);
 							}
 						}
 						format(line, sizeof(line), "\r\n"); fwrite(ExportIO, line);
